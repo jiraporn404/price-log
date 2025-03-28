@@ -1,4 +1,10 @@
-import { collection, addDoc, getDocs } from "firebase/firestore";
+import {
+  collection,
+  addDoc,
+  getDocs,
+  doc,
+  deleteDoc,
+} from "firebase/firestore";
 import { db } from "../firebase";
 
 // 📌 คอลเลกชันใน Firestore ที่ใช้เก็บสินค้า
@@ -17,4 +23,9 @@ export const addProduct = async (
 export const getProducts = async () => {
   const snapshot = await getDocs(productCollection);
   return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+};
+
+export const deleteProduct = async (id: string) => {
+  const productDoc = doc(productCollection, id);
+  await deleteDoc(productDoc);
 };
