@@ -46,7 +46,7 @@ function ProductAdd() {
     }
   };
 
-  const onSubmit = handleSubmit((data) => handleAddProduct(data));
+  const onSubmit = handleSubmit((data: FormData) => handleAddProduct(data));
 
   const handleAddProduct = async (data: FormData) => {
     if (!data.name || !data.price) return alert("กรอกข้อมูลให้ครบ");
