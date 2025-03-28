@@ -1,13 +1,22 @@
 import { useState, useEffect } from "react";
 import { addProduct, getProducts } from "./services/productService";
+import { Timestamp } from "firebase/firestore";
+
+type Product = {
+  id: string;
+  name: string;
+  location: string;
+  date: Timestamp; // Firestore Timestamp type
+  price: number;
+};
 
 export function PriceLogApp() {
   const [name, setName] = useState("");
   const [price, setPrice] = useState<number | "">("");
   const [location, setLocation] = useState("");
-  const [products, setProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-
+  console.log("products", products);
   useEffect(() => {
     loadProducts();
   }, []);
@@ -15,7 +24,7 @@ export function PriceLogApp() {
   const loadProducts = async () => {
     console.log("loadProducts");
     const data = await getProducts();
-    setProducts(data);
+    setProducts(data as Product[]);
   };
 
   const handleAddProduct = async () => {
@@ -76,7 +85,7 @@ export function PriceLogApp() {
         className="border p-2 w-full mb-2"
       />
       <ul className="mt-2">
-        {products.map((product) => (
+        {filteredProducts.map((product) => (
           <li key={product.id} className="border p-2 my-1">
             {product.name} - ฿{product.price} 🛒 {product.location}
           </li>
