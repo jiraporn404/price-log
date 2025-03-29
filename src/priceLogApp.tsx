@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { addProduct, getProducts } from "./services/productService";
 import { Timestamp } from "firebase/firestore";
+import { useAuth } from "./contexts/authContext";
 
 type Product = {
   id: string;
@@ -11,6 +12,7 @@ type Product = {
 };
 
 export function PriceLogApp() {
+  const { user } = useAuth();
   const [name, setName] = useState("");
   const [price, setPrice] = useState<number | "">("");
   const [location, setLocation] = useState("");
@@ -23,13 +25,13 @@ export function PriceLogApp() {
 
   const loadProducts = async () => {
     console.log("loadProducts");
-    const data = await getProducts();
+    const data = await getProducts(user?.uid || "");
     setProducts(data as Product[]);
   };
 
   const handleAddProduct = async () => {
     if (!name || price === "" || !location) return alert("กรอกข้อมูลให้ครบ");
-    await addProduct(name, Number(price), location);
+    await addProduct(user?.uid || "", name, Number(price), location);
     setName("");
     setPrice("");
     setLocation("");
