@@ -10,10 +10,11 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { addProduct } from "../../services/productService";
 import { useState } from "react";
+import { useAuth } from "../../contexts/authContext";
 
 export const Route = createFileRoute("/product/add")({
   component: ProductAdd,
@@ -26,6 +27,8 @@ type FormData = {
 };
 
 function ProductAdd() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const {
     register,
     setValue,
@@ -51,6 +54,7 @@ function ProductAdd() {
   const handleAddProduct = async (data: FormData) => {
     if (!data.name || !data.price) return alert("กรอกข้อมูลให้ครบ");
     await addProduct(
+      user?.uid || "",
       data.name,
       Number(data.price),
       isCustomLocation ? data.location : location
@@ -61,6 +65,7 @@ function ProductAdd() {
     setLocation("");
     setIsCustomLocation(false);
     setOpen(true);
+    navigate({ to: "/product/list" });
   };
 
   return (

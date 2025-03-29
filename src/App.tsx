@@ -5,6 +5,7 @@ import "./App.css";
 // Import the generated route tree
 import { routeTree } from "./routeTree.gen";
 import { theme } from "./theme";
+import { AuthProvider } from "./contexts/authContext";
 
 // Create a new router instance
 const router = createRouter({ routeTree });
@@ -19,7 +20,9 @@ declare module "@tanstack/react-router" {
 function App() {
   return (
     <ThemeProvider theme={theme}>
-      <RouterProvider router={router} />
+      <AuthProvider>
+        <RouterProvider router={router} />
+      </AuthProvider>
     </ThemeProvider>
   );
 }

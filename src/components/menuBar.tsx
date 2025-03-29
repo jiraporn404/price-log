@@ -6,8 +6,16 @@ import Toolbar from "@mui/material/Toolbar";
 import CssBaseline from "@mui/material/CssBaseline";
 import Typography from "@mui/material/Typography";
 import { useMatchRoute, useNavigate } from "@tanstack/react-router";
-import { BottomNavigation, BottomNavigationAction, Stack } from "@mui/material";
+import {
+  Avatar,
+  BottomNavigation,
+  BottomNavigationAction,
+  Menu,
+  MenuItem,
+  Stack,
+} from "@mui/material";
 import { AddIcon, HomeIcon, ListIcon } from "../icons";
+import { useAuth } from "../contexts/authContext";
 
 interface AppBarProps extends MuiAppBarProps {
   open?: boolean;
@@ -37,12 +45,21 @@ const AppBar = styled(MuiAppBar, {
 
 export function MenuBar({ children }: { children: React.ReactNode }) {
   const theme = useTheme();
+  const { logout, user } = useAuth();
   const routeMatch = useMatchRoute();
   const navigate = useNavigate();
   const isHomeActive = routeMatch({ to: "/" });
   const isListProductActive = routeMatch({ to: "/product/list" });
   const isAddProductActive = routeMatch({ to: "/product/add" });
   const [value, setValue] = React.useState(0);
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const open = Boolean(anchorEl);
+  const handleAvatarClick = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
 
   const getPageTitle = () => {
     if (isHomeActive) return "Price Log";
@@ -51,25 +68,64 @@ export function MenuBar({ children }: { children: React.ReactNode }) {
     return "Product Log";
   };
 
+  React.useEffect(() => {
+    if (isHomeActive) setValue(0);
+    if (isListProductActive) setValue(1);
+    if (isAddProductActive) setValue(2);
+  }, [isHomeActive, isListProductActive, isAddProductActive]);
+
   return (
     <Box sx={{ display: "flex", minHeight: "100vh" }}>
       <CssBaseline />
       <AppBar position="fixed" sx={{ zIndex: theme.zIndex.drawer + 1 }}>
-        <Toolbar>
-          <Stack direction="row" justifyContent="center" width="100%">
+        <Toolbar
+          sx={{
+            position: "relative",
+            display: "flex",
+            justifyContent: "center",
+          }}
+        >
+          <Stack
+            direction="row"
+            width="100%"
+            display={"flex"}
+            justifyContent={"center"}
+          >
             <Typography noWrap component="div">
               {getPageTitle()}
             </Typography>
           </Stack>
+          {user && (
+            <Avatar
+              key={user?.photoURL}
+              src={user?.photoURL || ""}
+              onClick={handleAvatarClick}
+              sx={{
+                position: "absolute",
+                right: 0,
+                mr: 2,
+              }}
+            />
+          )}
+          <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
+            <MenuItem
+              onClick={() => {
+                logout();
+                setAnchorEl(null);
+              }}
+            >
+              Logout
+            </MenuItem>
+          </Menu>
         </Toolbar>
       </AppBar>
 
       <Box
         component="main"
         sx={{
-          marginTop: "35px",
+          marginTop: "56px",
           width: "100vw",
-          height: "calc(100vh - 35px)",
+          height: "calc(100vh - 56px)",
           overflow: "auto",
         }}
       >

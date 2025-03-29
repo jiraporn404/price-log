@@ -48,7 +48,7 @@ export const theme = createTheme({
     MuiToolbar: {
       styleOverrides: {
         root: {
-          minHeight: "35px !important",
+          // minHeight: "35px !important",
         },
       },
     },

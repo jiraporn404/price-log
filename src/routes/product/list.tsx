@@ -15,12 +15,14 @@ import { Product } from "../../interface";
 import React, { useEffect, useState } from "react";
 import { deleteProduct, getProducts } from "../../services/productService";
 import { MoreVert, Search } from "@mui/icons-material";
+import { useAuth } from "../../contexts/authContext";
 
 export const Route = createFileRoute("/product/list")({
   component: ProductList,
 });
 
 function ProductList() {
+  const { user } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
@@ -32,12 +34,12 @@ function ProductList() {
   }, []);
 
   const loadProducts = async () => {
-    const data = await getProducts();
+    const data = await getProducts(user?.uid || "");
     setProducts(data as Product[]);
   };
 
   const handleDelete = async (productId: string) => {
-    await deleteProduct(productId);
+    await deleteProduct(productId, user?.uid || "");
     loadProducts();
     setAnchorEl(null);
   };
@@ -62,19 +64,21 @@ function ProductList() {
           ไม่มีข้อมูลสินค้า
         </Typography>
       )}
-      <TextField
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        fullWidth
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <Search />
-            </InputAdornment>
-          ),
-        }}
-        sx={{ mt: 2 }}
-      />
+      {products.length > 0 && (
+        <TextField
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          fullWidth
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <Search />
+              </InputAdornment>
+            ),
+          }}
+          sx={{ mt: 2 }}
+        />
+      )}
       {filteredProducts.map((product) => {
         return (
           <Box
