@@ -9,11 +9,12 @@ import {
   Stack,
   TextField,
   Typography,
+  Autocomplete,
 } from "@mui/material";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useForm } from "react-hook-form";
-import { addProduct } from "../../services/productService";
-import { useState } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { addProduct, getProducts } from "../../services/productService";
+import { useState, useEffect } from "react";
 import { useAuth } from "../../contexts/authContext";
 
 export const Route = createFileRoute("/product/add")({
@@ -24,6 +25,7 @@ type FormData = {
   name: string;
   price: number;
   location: string;
+  note: string;
 };
 
 function ProductAdd() {
@@ -34,20 +36,28 @@ function ProductAdd() {
     setValue,
     handleSubmit,
     formState: { errors },
+    control,
   } = useForm<FormData>();
-  const [location, setLocation] = useState("");
-  const [isCustomLocation, setIsCustomLocation] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState("");
+  const [customLocation, setCustomLocation] = useState("");
   const [open, setOpen] = useState(false);
+  const [productNames, setProductNames] = useState<string[]>([]);
 
   const handleLocationChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
-    setLocation(value);
-    if (value === "custom") {
-      setIsCustomLocation(true);
-    } else {
-      setIsCustomLocation(false);
+    setSelectedLocation(value);
+    if (value !== "custom") {
+      setCustomLocation("");
     }
   };
+
+  useEffect(() => {
+    // Fetch product names from DB
+    getProducts(user?.uid || "").then((products) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      setProductNames(products.map((p: any) => p.name));
+    });
+  }, [user?.uid]);
 
   const onSubmit = handleSubmit((data: FormData) => handleAddProduct(data));
 
@@ -57,13 +67,14 @@ function ProductAdd() {
       user?.uid || "",
       data.name,
       Number(data.price),
-      isCustomLocation ? data.location : location
+      selectedLocation === "custom" ? customLocation : selectedLocation,
+      data.note
     );
     setValue("name", "");
     setValue("price", 0);
     setValue("location", "");
-    setLocation("");
-    setIsCustomLocation(false);
+    setSelectedLocation("");
+    setCustomLocation("");
     setOpen(true);
     navigate({ to: "/product/list" });
   };
@@ -77,15 +88,30 @@ function ProductAdd() {
       <Box sx={{ width: "100%", mt: 2 }}>
         <form onSubmit={onSubmit}>
           <Stack spacing={2}>
-            <TextField
-              {...register("name", { required: "ชื่อสินค้าไม่สามารถว่างได้" })}
-              label="ชื่อสินค้า"
-              fullWidth
-              sx={{ mt: 2 }}
-              error={!!errors.name}
-              helperText={errors.name?.message}
-              autoComplete="off"
-              required
+            <Controller
+              name="name"
+              control={control}
+              rules={{ required: "ชื่อสินค้าไม่สามารถว่างได้" }}
+              render={({ field }) => (
+                <Autocomplete
+                  freeSolo
+                  options={productNames}
+                  onInputChange={(_, value) => field.onChange(value)}
+                  value={field.value || ""}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="ชื่อสินค้า"
+                      fullWidth
+                      sx={{ mt: 2 }}
+                      error={!!errors.name}
+                      helperText={errors.name?.message}
+                      autoComplete="off"
+                      required
+                    />
+                  )}
+                />
+              )}
             />
             <TextField
               {...register("price", { required: "ราคาไม่สามารถว่างได้" })}
@@ -98,7 +124,10 @@ function ProductAdd() {
               autoComplete="off"
               required
             />
-            <RadioGroup value={location} onChange={handleLocationChange}>
+            <RadioGroup
+              value={selectedLocation}
+              onChange={handleLocationChange}
+            >
               <FormControlLabel
                 value="Shopee"
                 control={<Radio />}
@@ -110,27 +139,39 @@ function ProductAdd() {
                 label="Lazada"
               />
               <FormControlLabel
+                value="TikTok"
+                control={<Radio />}
+                label="TikTok"
+              />
+              <FormControlLabel
                 value="custom"
                 control={<Radio />}
                 label="อื่น ๆ"
               />
             </RadioGroup>
-            {isCustomLocation && (
+            {selectedLocation === "custom" && (
               <TextField
                 {...register("location", {
                   required: "กรุณากรอกช่องทางการซื้อ",
                 })}
                 label="ช่องทางการซื้อ"
-                required={isCustomLocation}
+                required
                 fullWidth
                 sx={{ mt: 2 }}
-                value={location === "custom" ? "" : location}
-                onChange={(e) => setLocation(e.target.value)}
+                value={customLocation}
+                onChange={(e) => setCustomLocation(e.target.value)}
                 error={!!errors.location}
                 helperText={errors.location?.message}
                 autoComplete="off"
               />
             )}
+            <TextField
+              {...register("note")}
+              label="บันทึกเพิ่มเติม"
+              fullWidth
+              multiline
+              rows={4}
+            />
             <Button
               type="submit"
               variant="contained"

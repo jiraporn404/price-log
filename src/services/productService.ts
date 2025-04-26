@@ -18,7 +18,8 @@ export const addProduct = async (
   userId: string,
   name: string,
   price: number,
-  location: string
+  location: string,
+  note: string
 ) => {
   await addDoc(productCollection, {
     userId,
@@ -26,6 +27,7 @@ export const addProduct = async (
     price,
     location,
     date: new Date(),
+    note,
   });
 };
 

@@ -8,15 +8,24 @@ import {
   MenuItem,
   TextField,
   InputAdornment,
-  useMediaQuery,
 } from "@mui/material";
 import { createFileRoute } from "@tanstack/react-router";
 import { Product } from "../../interface";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { deleteProduct, getProducts } from "../../services/productService";
 import { MoreVert, Search } from "@mui/icons-material";
 import { useAuth } from "../../contexts/authContext";
 
+const locationStyle = [
+  {
+    location: "Shopee",
+    color: "rgb(255, 145, 0)",
+  },
+  {
+    location: "Lazada",
+    color: "rgb(88, 88, 240)",
+  },
+];
 export const Route = createFileRoute("/product/list")({
   component: ProductList,
 });
@@ -25,28 +34,44 @@ function ProductList() {
   const { user } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-  const open = Boolean(anchorEl);
-  const isMobile = useMediaQuery("(max-width: 600px)");
-
-  useEffect(() => {
-    loadProducts();
-  }, []);
+  const [menuState, setMenuState] = useState<{
+    anchorEl: HTMLElement | null;
+    productId: string | null;
+  }>({ anchorEl: null, productId: null });
+  const open = Boolean(menuState.anchorEl);
+  // const isMobile = useMediaQuery("(max-width: 600px)");
 
   const loadProducts = async () => {
     const data = await getProducts(user?.uid || "");
     setProducts(data as Product[]);
   };
 
-  const handleDelete = async (productId: string) => {
-    await deleteProduct(productId, user?.uid || "");
+  const handleDelete = async () => {
+    if (!menuState.productId) return;
+    await deleteProduct(menuState.productId, user?.uid || "");
     loadProducts();
-    setAnchorEl(null);
+    setMenuState({ anchorEl: null, productId: null });
   };
 
   const filteredProducts = products.filter((product) =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Group products by name
+  const groupedProducts = filteredProducts.reduce(
+    (acc, product) => {
+      if (!acc[product.name]) {
+        acc[product.name] = [];
+      }
+      acc[product.name].push(product);
+      return acc;
+    },
+    {} as Record<string, Product[]>
+  );
+
+  useEffect(() => {
+    loadProducts();
+  }, []);
 
   return (
     <Box sx={{ width: "100%" }}>
@@ -79,80 +104,122 @@ function ProductList() {
           sx={{ mt: 2 }}
         />
       )}
-      {filteredProducts.map((product) => {
-        return (
-          <Box
-            key={product.id}
-            sx={{
-              py: 2,
-              borderBottom: "1px solid #e0e0e0",
-            }}
-          >
-            <Stack
-              direction={"row"}
-              width={"100%"}
-              alignItems={"center"}
-              spacing={1}
-            >
-              <Box flexGrow={1}>
-                <Stack direction="row" justifyContent="space-between">
-                  <Typography
-                    fontWeight={500}
-                    sx={{
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                      display: "block",
-                      maxWidth: isMobile ? "300px" : "100%",
-                    }}
-                  >
-                    {product.name}
-                  </Typography>
-                </Stack>
-                <Typography
-                  fontWeight={600}
-                  align="right"
-                  sx={{ color: "#f67e7d" }}
+      {/* Render grouped products */}
+      {Object.entries(groupedProducts)
+        .sort(([aName], [bName]) => aName.localeCompare(bName))
+        .map(([name, group]) => (
+          <Box key={name} sx={{ mb: 1 }}>
+            <Typography fontWeight="bold" sx={{ mt: 1, mb: 1 }}>
+              {name}
+              {group.length > 1 && (
+                <span style={{ color: "#888" }}> ({group.length})</span>
+              )}
+            </Typography>
+            {group.map((product) => (
+              <Box
+                key={product.id}
+                sx={{
+                  mb: 1.5,
+                  p: 1,
+                  background: "#fafbfc",
+                  borderRadius: 2,
+                  boxShadow: "0 1px 2px rgba(0,0,0,0.03)",
+                  border: "1px solid #ececec",
+                  transition: "background 0.2s",
+                  "&:hover": {
+                    background: "#f5f7fa",
+                  },
+                }}
+              >
+                <Stack
+                  direction="row"
+                  alignItems="center"
+                  spacing={2}
+                  justifyContent="space-between"
                 >
-                  ฿
-                  {product.price.toLocaleString(undefined, {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}
-                </Typography>
-                <Stack direction="row" justifyContent="space-between">
-                  <Typography variant="body2" color="text.secondary">
-                    {product.location}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {product.date.toDate().toLocaleDateString("th-TH", {
-                      year: "numeric",
-                      month: "2-digit",
-                      day: "2-digit",
-                    })}
-                  </Typography>
+                  <Box flexGrow={1}>
+                    <Stack
+                      direction="row"
+                      justifyContent="space-between"
+                      alignItems="center"
+                    >
+                      <Typography
+                        fontWeight={600}
+                        color="#f67e7d"
+                        fontSize={18}
+                        sx={{ minWidth: 90 }}
+                      >
+                        ฿
+                        {product.price.toLocaleString(undefined, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{
+                          ml: 2,
+                          fontStyle: "italic",
+                          color: locationStyle.find(
+                            (l) => l.location === product.location
+                          )?.color,
+                        }}
+                      >
+                        {product.location}
+                      </Typography>
+                    </Stack>
+                    {product.note && (
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ mt: 0.5, fontStyle: "italic" }}
+                      >
+                        📝 {product.note}
+                      </Typography>
+                    )}
+                    <Stack
+                      direction="row"
+                      justifyContent="space-between"
+                      alignItems="center"
+                      sx={{ mt: 1 }}
+                    >
+                      <Typography fontSize={12} color="text.secondary">
+                        วันที่:{" "}
+                        <span style={{ fontWeight: 500 }}>
+                          {product.date.toDate().toLocaleDateString("th-TH", {
+                            year: "numeric",
+                            month: "2-digit",
+                            day: "2-digit",
+                          })}
+                        </span>
+                      </Typography>
+                    </Stack>
+                  </Box>
+                  <IconButton
+                    color="inherit"
+                    onClick={(event) =>
+                      setMenuState({
+                        anchorEl: event.currentTarget,
+                        productId: product.id,
+                      })
+                    }
+                    sx={{ ml: 1 }}
+                  >
+                    <MoreVert />
+                  </IconButton>
                 </Stack>
               </Box>
-
-              <IconButton
-                color="inherit"
-                onClick={(event) => setAnchorEl(event.currentTarget)}
-              >
-                <MoreVert />
-              </IconButton>
-              <Menu
-                anchorEl={anchorEl}
-                open={open}
-                onClose={() => setAnchorEl(null)}
-              >
-                <MenuItem onClick={() => handleDelete(product.id)}>
-                  Delete
-                </MenuItem>
-              </Menu>
-            </Stack>
+            ))}
+            <Menu
+              anchorEl={menuState.anchorEl}
+              open={open}
+              onClose={() => setMenuState({ anchorEl: null, productId: null })}
+            >
+              <MenuItem onClick={handleDelete}>ลบสินค้า</MenuItem>
+            </Menu>
           </Box>
-        );
-      })}
+        ))}
     </Box>
   );
 }

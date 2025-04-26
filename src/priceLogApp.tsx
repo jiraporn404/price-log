@@ -1,15 +1,7 @@
 import { useState, useEffect } from "react";
 import { addProduct, getProducts } from "./services/productService";
-import { Timestamp } from "firebase/firestore";
 import { useAuth } from "./contexts/authContext";
-
-type Product = {
-  id: string;
-  name: string;
-  location: string;
-  date: Timestamp; // Firestore Timestamp type
-  price: number;
-};
+import { Product } from "./interface";
 
 export function PriceLogApp() {
   const { user } = useAuth();
@@ -18,29 +10,30 @@ export function PriceLogApp() {
   const [location, setLocation] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  console.log("products", products);
-  useEffect(() => {
-    loadProducts();
-  }, []);
+  const [note, setNote] = useState("");
 
   const loadProducts = async () => {
-    console.log("loadProducts");
     const data = await getProducts(user?.uid || "");
     setProducts(data as Product[]);
   };
 
   const handleAddProduct = async () => {
     if (!name || price === "" || !location) return alert("กรอกข้อมูลให้ครบ");
-    await addProduct(user?.uid || "", name, Number(price), location);
+    await addProduct(user?.uid || "", name, Number(price), location, note);
     setName("");
     setPrice("");
     setLocation("");
+    setNote("");
     loadProducts();
   };
 
   const filteredProducts = products.filter((product) =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  useEffect(() => {
+    loadProducts();
+  }, []);
 
   return (
     <div className="p-4 max-w-lg mx-auto">

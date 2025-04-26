@@ -6,4 +6,5 @@ export interface Product {
   price: number;
   location: string;
   date: Timestamp;
+  note: string;
 }
