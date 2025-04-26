@@ -1,6 +1,7 @@
 import { Button, Stack, Typography } from "@mui/material";
 import { createFileRoute } from "@tanstack/react-router";
 import { useNavigate } from "@tanstack/react-router";
+import packageJson from "../../package.json";
 
 export const Route = createFileRoute("/")({
   component: Homepage,
@@ -12,6 +13,9 @@ function Homepage() {
     <Stack gap={2} height="100%">
       <Typography variant="h3" align="center">
         📦 Price Log
+      </Typography>
+      <Typography variant="caption" align="center">
+        version {packageJson.version}
       </Typography>
       <Typography variant="subtitle1" align="center">
         PriceLog: A simple app for tracking and recording product prices,
