@@ -57,7 +57,6 @@ function ProductList() {
     product.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Group products by name
   const groupedProducts = filteredProducts.reduce(
     (acc, product) => {
       if (!acc[product.name]) {
@@ -102,9 +101,10 @@ function ProductList() {
             ),
           }}
           sx={{ mt: 2 }}
+          autoComplete="off"
         />
       )}
-      {/* Render grouped products */}
+
       {Object.entries(groupedProducts)
         .sort(([aName], [bName]) => aName.localeCompare(bName))
         .map(([name, group]) => (
@@ -115,102 +115,104 @@ function ProductList() {
                 <span style={{ color: "#888" }}> ({group.length})</span>
               )}
             </Typography>
-            {group.map((product) => (
-              <Box
-                key={product.id}
-                sx={{
-                  mb: 1.5,
-                  p: 1,
-                  background: "#fafbfc",
-                  borderRadius: 2,
-                  boxShadow: "0 1px 2px rgba(0,0,0,0.03)",
-                  border: "1px solid #ececec",
-                  transition: "background 0.2s",
-                  "&:hover": {
-                    background: "#f5f7fa",
-                  },
-                }}
-              >
-                <Stack
-                  direction="row"
-                  alignItems="center"
-                  spacing={2}
-                  justifyContent="space-between"
+            {group
+              .sort((aPrice, bPrice) => aPrice.price - bPrice.price)
+              .map((product) => (
+                <Box
+                  key={product.id}
+                  sx={{
+                    mb: 1.5,
+                    p: 1,
+                    background: "#fafbfc",
+                    borderRadius: 2,
+                    boxShadow: "0 1px 2px rgba(0,0,0,0.03)",
+                    border: "1px solid #ececec",
+                    transition: "background 0.2s",
+                    "&:hover": {
+                      background: "#f5f7fa",
+                    },
+                  }}
                 >
-                  <Box flexGrow={1}>
-                    <Stack
-                      direction="row"
-                      justifyContent="space-between"
-                      alignItems="center"
-                    >
-                      <Typography
-                        fontWeight={600}
-                        color="#f67e7d"
-                        fontSize={18}
-                        sx={{ minWidth: 90 }}
-                      >
-                        ฿
-                        {product.price.toLocaleString(undefined, {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}
-                      </Typography>
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        sx={{
-                          ml: 2,
-                          fontStyle: "italic",
-                          color: locationStyle.find(
-                            (l) => l.location === product.location
-                          )?.color,
-                        }}
-                      >
-                        {product.location}
-                      </Typography>
-                    </Stack>
-                    {product.note && (
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        sx={{ mt: 0.5, fontStyle: "italic" }}
-                      >
-                        📝 {product.note}
-                      </Typography>
-                    )}
-                    <Stack
-                      direction="row"
-                      justifyContent="space-between"
-                      alignItems="center"
-                      sx={{ mt: 1 }}
-                    >
-                      <Typography fontSize={12} color="text.secondary">
-                        วันที่:{" "}
-                        <span style={{ fontWeight: 500 }}>
-                          {product.date.toDate().toLocaleDateString("th-TH", {
-                            year: "numeric",
-                            month: "2-digit",
-                            day: "2-digit",
-                          })}
-                        </span>
-                      </Typography>
-                    </Stack>
-                  </Box>
-                  <IconButton
-                    color="inherit"
-                    onClick={(event) =>
-                      setMenuState({
-                        anchorEl: event.currentTarget,
-                        productId: product.id,
-                      })
-                    }
-                    sx={{ ml: 1 }}
+                  <Stack
+                    direction="row"
+                    alignItems="center"
+                    spacing={2}
+                    justifyContent="space-between"
                   >
-                    <MoreVert />
-                  </IconButton>
-                </Stack>
-              </Box>
-            ))}
+                    <Box flexGrow={1}>
+                      <Stack
+                        direction="row"
+                        justifyContent="space-between"
+                        alignItems="center"
+                      >
+                        <Typography
+                          fontWeight={600}
+                          color="#f67e7d"
+                          fontSize={18}
+                          sx={{ minWidth: 90 }}
+                        >
+                          ฿
+                          {product.price.toLocaleString(undefined, {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}
+                        </Typography>
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          sx={{
+                            ml: 2,
+                            fontStyle: "italic",
+                            color: locationStyle.find(
+                              (l) => l.location === product.location
+                            )?.color,
+                          }}
+                        >
+                          {product.location}
+                        </Typography>
+                      </Stack>
+                      {product.note && (
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          sx={{ mt: 0.5, fontStyle: "italic" }}
+                        >
+                          📝 {product.note}
+                        </Typography>
+                      )}
+                      <Stack
+                        direction="row"
+                        justifyContent="space-between"
+                        alignItems="center"
+                        sx={{ mt: 1 }}
+                      >
+                        <Typography fontSize={12} color="text.secondary">
+                          วันที่:{" "}
+                          <span style={{ fontWeight: 500 }}>
+                            {product.date.toDate().toLocaleDateString("th-TH", {
+                              year: "numeric",
+                              month: "2-digit",
+                              day: "2-digit",
+                            })}
+                          </span>
+                        </Typography>
+                      </Stack>
+                    </Box>
+                    <IconButton
+                      color="inherit"
+                      onClick={(event) =>
+                        setMenuState({
+                          anchorEl: event.currentTarget,
+                          productId: product.id,
+                        })
+                      }
+                      sx={{ ml: 1 }}
+                    >
+                      <MoreVert />
+                    </IconButton>
+                  </Stack>
+                </Box>
+              ))}
             <Menu
               anchorEl={menuState.anchorEl}
               open={open}

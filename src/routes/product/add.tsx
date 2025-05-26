@@ -52,10 +52,10 @@ function ProductAdd() {
   };
 
   useEffect(() => {
-    // Fetch product names from DB
     getProducts(user?.uid || "").then((products) => {
+      const uniqueProductNames = [...new Set(products.map((p: any) => p.name))];
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      setProductNames(products.map((p: any) => p.name));
+      setProductNames(uniqueProductNames);
     });
   }, [user?.uid]);
 
@@ -63,6 +63,7 @@ function ProductAdd() {
 
   const handleAddProduct = async (data: FormData) => {
     if (!data.name || !data.price) return alert("กรอกข้อมูลให้ครบ");
+
     await addProduct(
       user?.uid || "",
       data.name,
@@ -70,6 +71,7 @@ function ProductAdd() {
       selectedLocation === "custom" ? customLocation : selectedLocation,
       data.note
     );
+
     setValue("name", "");
     setValue("price", 0);
     setValue("location", "");
@@ -108,6 +110,9 @@ function ProductAdd() {
                       helperText={errors.name?.message}
                       autoComplete="off"
                       required
+                      InputLabelProps={{
+                        shrink: true,
+                      }}
                     />
                   )}
                 />
@@ -123,6 +128,9 @@ function ProductAdd() {
               helperText={errors.price?.message}
               autoComplete="off"
               required
+              InputLabelProps={{
+                shrink: true,
+              }}
             />
             <RadioGroup
               value={selectedLocation}
@@ -171,6 +179,9 @@ function ProductAdd() {
               fullWidth
               multiline
               rows={4}
+              InputLabelProps={{
+                shrink: true,
+              }}
             />
             <Button
               type="submit"

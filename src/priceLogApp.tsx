@@ -39,7 +39,6 @@ export function PriceLogApp() {
     <div className="p-4 max-w-lg mx-auto">
       <h1 className="text-xl font-bold mb-4">📦 บันทึกราคาสินค้า</h1>
 
-      {/* ฟอร์มกรอกข้อมูล */}
       <input
         type="text"
         placeholder="ชื่อสินค้า"
@@ -70,7 +69,6 @@ export function PriceLogApp() {
         ➕ เพิ่มสินค้า
       </button>
 
-      {/* แสดงรายการสินค้า */}
       <h2 className="text-lg font-bold mt-4">📜 รายการสินค้า</h2>
       <input
         type="text"
